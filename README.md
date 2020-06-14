@@ -23,9 +23,9 @@ You will need to change:
 
 ## Pre-reqs
 
-see requirements.txt
+Simple! Just `pip install -r requirements.txt`! The web of science functionality relies heavily on the [wos](https://pypi.org/project/wos/) library
 
-## authorisation
+## Authorisation
 
 You need an API key for scopus, and institutional authorisation. The WOS client is set up herein to be authorised based on network. Pubmed requires nothing (some functions there borrowed from [this](https://www.nature.com/articles/s42003-018-0261-x) paper).
 
