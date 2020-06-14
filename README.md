@@ -36,4 +36,4 @@ You need an API key for scopus, and institutional authorisation. The WOS client 
 * unit testing
 * a couple of fields are missing from the WOS parse
 * please raise issues if you need something specific
-* this is very, very much a prototy\work in progress!
+* this is very, very much a prototype\work in progress!
