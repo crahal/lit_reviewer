@@ -27,7 +27,7 @@ Simple! Just `pip install -r requirements.txt`! The web of science functionality
 
 ## Authorisation
 
-You need an API key for scopus, and institutional authorisation. The WOS client is set up herein to be authorised based on network. Pubmed requires nothing (some functions there borrowed from [this](https://www.nature.com/articles/s42003-018-0261-x) paper).
+You need an API key for scopus, and institutional authorisation. The WOS client is set up herein to be authorised based on network, but could be easily ammended to a login. Pubmed requires nothing (some functions there borrowed from [this](https://www.nature.com/articles/s42003-018-0261-x) paper).
 
 ## @TODO
 
