@@ -19,7 +19,7 @@ You will need to change:
 ## Whats this stuff about flags?
 
 * Check whether a paper mentions a specific search term: useful if combining different boolean terms!
-* Easily check whether the paper features in a specific API return (we drop duplicates based on DOI\titled)
+* Easily check whether the paper features in a specific API return (we drop duplicates based on DOI\title)
 
 ## Pre-reqs
 
