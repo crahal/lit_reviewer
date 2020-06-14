@@ -18,7 +18,7 @@ You will need to change:
   
 ## Whats this stuff about flags?
 
-* Check whether a paper mentions a specific search term: useful if combining different boolean terms!
+* Check whether a paper mentions a specific search term: useful if combining different booleans!
 * Easily check whether the paper features in a specific API return (we drop duplicates based on DOI\title)
 
 ## Pre-reqs
@@ -32,7 +32,7 @@ You need an API key for scopus, and institutional authorisation. The WOS client 
 ## @TODO
 
 * better error handling
-* make classes
+* classes...
 * unit testing
 * a couple of fields are missing from the WOS parse
 * please raise issues if you need something specific
