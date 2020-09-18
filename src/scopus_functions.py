@@ -13,12 +13,14 @@ import numpy as np
 
 @limits(calls=3, period=1)
 def call_scopus_search_api(url, apikey):
+    ''' simple function for search api with ratelimited decorator'''
     api_return = requests.get(url+'&apiKey='+apikey)
     return api_return
 
 
 @limits(calls=4, period=1)
 def call_scopus_abstract_api(url, apikey):
+    ''' simple function for abstract api with ratelimited decorator'''
     api_return = requests.get(url,
                               headers={'Accept': 'application/json',
                                        'X-ELS-APIKey': apikey})
@@ -27,6 +29,7 @@ def call_scopus_abstract_api(url, apikey):
 
 @limits(calls=3, period=1)
 def call_scopus_serialtitle_api(url, apikey):
+    ''' simple function for title api with ratelimited  decorator'''
     api_return = requests.get(url,
                               headers={'Accept': 'application/json',
                                        'X-ELS-APIKey': apikey})
@@ -84,8 +87,16 @@ def search_scopus_into_csv(query_list, apikey, d_path, count=100):
             pagenum = 0
             numres = 99999999999999999999999999999999999999999999999999999999
             while pagenum < (math.ceil(int(numres)/count)):
-                search = search.lower().replace('"', '%22').replace(' ', '%20')
-                url = base_url + 'start=' + str((pagenum*count)) + '&count=' + str(count) + '&query=' + search
+                search = search.lower()
+                search = search.replace('"', '%22')
+                search = search.replace(' ', '%20')
+                search = search.replace('{', '%22')
+                search = search.replace('}', '%22')
+                search = search.replace('&', '+AND+')
+                url = base_url + 'start=' + str((pagenum*count)) + '&count=' + \
+                      str(count) +'&query=TITLE-ABS-KEY('+ search+\
+                      ')%20%20AND%20%20PUBYEAR%20%20%3E%20%202017%20'
+                      #this last term sets the year range
                 api_return = call_scopus_search_api(url, apikey)
                 api_json = json.loads(api_return.content)
                 try:
@@ -240,7 +251,7 @@ def search_scopus_into_csv(query_list, apikey, d_path, count=100):
                     json.dump(api_json, outfile)
 
 
-def scopus_abstract(doi_list, apikey, count=25):
+def scopus_abstract(doi_list, apikey, d_path, count=25):
     with open(os.path.abspath(
               os.path.join(d_path, 'scopus', 'abstract_info', 'parsed',
                            'abstract_info.tsv')),
@@ -630,6 +641,7 @@ def make_affil_df(search_df):
 
 
 def make_keywords_df(abstract_df):
+    ''' this makes a long dataframe of keywords '''
     print('**** Now making a long keywords dataset ****')
     abstract_df = abstract_df[abstract_df['DOI'].notnull()]
     abstract_df = abstract_df[abstract_df['Keywords'].notnull()]
@@ -725,17 +737,23 @@ def merge_datasets(d_path):
                                                'serialtitle', 'parsed',
                                                'serial_title.tsv'),
                                   index_col=None, sep='\t')
-    serial_title_df = serial_title_df.rename({'sourceid': 'journal_sourceid'}, axis=1)
-    serial_title_df = serial_title_df.rename({'dctitle': 'journal_dctitle'}, axis=1)
-    serial_title_df = serial_title_df.rename({'prismaggregationtype': 'journal_prismaggregationtype'}, axis=1)
-    serial_title_df = serial_title_df.rename({'prismeissn': 'journal_prismeissn'}, axis=1)
-    serial_title_df = serial_title_df.rename({'openaccess': 'journal_openaccess'}, axis=1)
-    serial_title_df = serial_title_df.rename({'sourceid': 'journal_sourceid'}, axis=1)
+    serial_title_df = serial_title_df.rename({'sourceid': 'journal_sourceid'},
+                                             axis=1)
+    serial_title_df = serial_title_df.rename({'dctitle': 'journal_dctitle'},
+                                             axis=1)
+    serial_title_df = serial_title_df.rename({'prismaggregationtype':
+                                              'journal_prismaggregationtype'},
+                                              axis=1)
+    serial_title_df = serial_title_df.rename({'prismeissn':
+                                              'journal_prismeissn'}, axis=1)
+    serial_title_df = serial_title_df.rename({'openaccess':
+                                              'journal_openaccess'}, axis=1)
+    serial_title_df = serial_title_df.rename({'sourceid': 'journal_sourceid'},
+                                             axis=1)
     scopus_merged_df = pd.merge(scopus_df, serial_title_df, how='left',
                                 left_on='prismissn', right_on='prismissn')
     abstract_df = pd.read_csv(os.path.join(d_path, 'scopus', 'abstract_info',
-                                           'parsed',
-                                           'abstract_info.tsv'),
+                                           'parsed', 'abstract_info.tsv'),
                               index_col=None, sep='\t')
     abstract_df = abstract_df.rename({'dctitle': 'abstract_dctitle'}, axis=1)
     scopus_merged_df = pd.merge(scopus_merged_df, abstract_df,
@@ -745,7 +763,7 @@ def merge_datasets(d_path):
     scopus_merged_df['Query'] = scopus_merged_df['Query'].str.replace('%20', " ")
     scopus_merged_df['Query'] = scopus_merged_df['Query'].str.replace('{', '"')
     scopus_merged_df['Query'] = scopus_merged_df['Query'].str.replace('}', '"')
-    scopus_merged_df = scopus_merged_df.drop_duplicates(subset=['DOI'])
+#    scopus_merged_df = scopus_merged_df.drop_duplicates(subset=['DOI'])
     scopus_merged_df.to_csv(os.path.join(d_path, 'scopus', 'merged',
                                          'scopus_merged_cleaned.csv'))
     return scopus_merged_df
