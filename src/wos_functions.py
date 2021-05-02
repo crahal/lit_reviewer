@@ -11,6 +11,7 @@ import time
 import logging
 logging.getLogger('suds.client').setLevel(logging.CRITICAL)
 
+
 @limits(calls=5, period=300)
 def new_wos_query(new_item, client, d_path, sleeper=60):
     """ Make a Web of Science query """
@@ -34,8 +35,10 @@ def new_wos_query(new_item, client, d_path, sleeper=60):
                     for title in rec.summary.findAll('title'):
                         if 'type="item"' in str(title):
                             df.at[counter, 'Title'] = title.string
-                            if 'type="source"' in str(title):
-                                df.at[counter, 'Journal'] = title.string
+                            print(title.string)
+                        if 'type="source"' in str(title):
+                            df.at[counter, 'Journal'] = title.string
+                            print(title.string)
                             for ident in rec.findAll('identifier'):
                                 if 'type="doi"' in str(ident):
                                     df.at[counter, 'DOI'] = ident['value']
@@ -97,6 +100,7 @@ def wos_main(querylist, d_path):
             dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
             print(dt_string + ': searching WOS: ' + new_item)
             new_wos_query(new_item, client, d_path)
+            time.sleep(60)
     df = merge_dfs(d_path)
     df.to_csv(os.path.join(d_path, 'wos', 'wos_search.csv'), index=False)
     return df
