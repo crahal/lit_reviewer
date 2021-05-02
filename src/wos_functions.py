@@ -35,10 +35,8 @@ def new_wos_query(new_item, client, d_path, sleeper=60):
                     for title in rec.summary.findAll('title'):
                         if 'type="item"' in str(title):
                             df.at[counter, 'Title'] = title.string
-                            print(title.string)
                         if 'type="source"' in str(title):
                             df.at[counter, 'Journal'] = title.string
-                            print(title.string)
                             for ident in rec.findAll('identifier'):
                                 if 'type="doi"' in str(ident):
                                     df.at[counter, 'DOI'] = ident['value']
