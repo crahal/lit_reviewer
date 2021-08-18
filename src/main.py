@@ -7,33 +7,9 @@ from scopus_functions import scopus_main
 from wos_functions import wos_main
 
 
-def load_token(token_name):
-    """Read supplementary text file for Scopus API key"""
-    try:
-        with open(token_name, 'r') as file:
-            return str(file.readline()).strip()
-    except EnvironmentError:
-        print('Error loading access token from file')
+def main():
+    """ main function for lit_reviewer"""
 
-
-def build_flags(df, flaglist):
-    """Build flags into the dataframe."""
-    df = df[df['DOI'].notnull()]
-    df = df[df['DOI']!='']
-    df = df[df['Title'].notnull()]
-    df = df[df['Title']!='']
-    df = df.reset_index(drop=True)
-    for flag in flaglist:
-        print('Building flags for: ' + str(flag))
-        df[flag + '_flag'] = 0
-        for index, row in df.iterrows():
-            temp_df = df[df['DOI'] == row['DOI']]
-            if temp_df['Query'].str.contains(flag).any():
-                df.loc[index, flag + '_flag'] = 1
-    return df
-
-
-if __name__ == '__main__':
     email = load_token(os.path.join(os.getcwd(), '..', 'keys',
                                     'email_address'))
     apikey = load_token(os.path.join(os.getcwd(), '..',
@@ -52,8 +28,7 @@ if __name__ == '__main__':
                      'Date', 'Keywords', 'affilcountries', 'openaccessFlag',
                      'Abstract', 'citedbycount']
     pubmed_fields = ['Query', 'Title', 'DOI', 'AuthorList', 'Journal',
-                     'Date', 'Keywords', 'Abstract',
-                     'citedbycount', 'PubMedID']
+                     'Date', 'Keywords', 'Abstract', 'citedbycount', 'PubMedID']
     df = pd.concat([pubmed_df[pubmed_fields],
                     scopus_df[scopus_fields],
                     wos_df])
@@ -65,3 +40,45 @@ if __name__ == '__main__':
     df = df.drop_duplicates(subset=['DOI'], keep='first')
     df = df.drop_duplicates(subset=['Title'], keep='first')
     df.to_csv(os.path.join(d_path, 'merged', 'merged_output.csv'))
+
+
+def load_token(token_name):
+    """ Read supplementary text file for Scopus API key
+
+    Args:
+        token_name: the name of your Scopus API key file
+    """
+    try:
+        with open(token_name, 'r') as file:
+            return str(file.readline()).strip()
+    except EnvironmentError:
+        print(f'Error loading {token_name} from file')
+
+
+def build_flags(df_merged, flaglist):
+    """Build flags into the dataframe.
+
+    Args:
+        df_merged: the full merged dataframe
+        flaglist: the list of flags from query_list
+    Return:
+        df with list of flags
+    """
+    df_merged = df_merged[df_merged['DOI'].notnull()]
+    df_merged = df_merged[df_merged['DOI']!='']
+    df_merged = df_merged[df_merged['Title'].notnull()]
+    df_merged = df_merged[df_merged['Title']!='']
+    df_merged = df_merged.reset_index(drop=True)
+    for flag in flaglist:
+        print('Building flags for: ' + str(flag))
+        # @TODO i think this should be an .at[:,]
+        df_merged[flag + '_flag'] = 0
+        for index, row in df.iterrows():
+            temp_df = df_merged[df_merged['DOI'] == row['DOI']]
+            if temp_df['Query'].str.contains(flag).any():
+                df_merged.loc[index, flag + '_flag'] = 1
+    return df_merged
+
+
+if __name__ == '__main__':
+    main()
