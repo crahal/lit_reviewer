@@ -13,14 +13,14 @@ import numpy as np
 
 @limits(calls=3, period=1)
 def call_scopus_search_api(url, apikey):
-    ''' simple function for search api with ratelimited decorator'''
+    """ Search Scopus _Search_ API with ratelimited decorator"""
     api_return = requests.get(url+'&apiKey='+apikey)
     return api_return
 
 
 @limits(calls=4, period=1)
 def call_scopus_abstract_api(url, apikey):
-    ''' simple function for abstract api with ratelimited decorator'''
+    """ Search Scopus _Abstract_ API with ratelimited decorator"""
     api_return = requests.get(url,
                               headers={'Accept': 'application/json',
                                        'X-ELS-APIKey': apikey})
@@ -29,7 +29,7 @@ def call_scopus_abstract_api(url, apikey):
 
 @limits(calls=3, period=1)
 def call_scopus_serialtitle_api(url, apikey):
-    ''' simple function for title api with ratelimited  decorator'''
+    """ Search Scopus _SerialTitle_ API with ratelimited decorator"""
     api_return = requests.get(url,
                               headers={'Accept': 'application/json',
                                        'X-ELS-APIKey': apikey})
@@ -37,20 +37,17 @@ def call_scopus_serialtitle_api(url, apikey):
 
 
 def search_scopus_into_csv(query_list, apikey, d_path, count=100):
-    '''
-    A function to scrape the scopus api for all mentions of a keyword set
-
-    query list: a colon delimited list in the form of dataset:searchquery
-    aqikey:     a free apikey granted on application: note you need to be
+    """ Scrape the scopus api for all mentions of a keyword set
+    Args:
+        query list: a colon delimited list in the form of dataset:searchquery
+        aqikey:     a free apikey granted on application: note you need to be
                 connected to the domain of a registered institution or
                 your requests will not be successful...
-    count:      the number of returns per page request, default 100 (max)
-    '''
+        count:      the number of returns per page request, default 100 (max)
+    """
 
     print('****** Now Scraping the Scopus Search API for Mentions ******')
-
     base_url = 'https://api.elsevier.com/content/search/scopus?'
-
     with open(os.path.abspath(
               os.path.join(d_path,
                            'scopus', 'search', 'parsed',
@@ -85,6 +82,7 @@ def search_scopus_into_csv(query_list, apikey, d_path, count=100):
                                 'openaccessFlag'])
         for search in query_list:
             pagenum = 0
+            # @TODO this should almost certainly be an np.inf or similar
             numres = 99999999999999999999999999999999999999999999999999999999
             while pagenum < (math.ceil(int(numres)/count)):
                 search = search.lower()
@@ -252,6 +250,13 @@ def search_scopus_into_csv(query_list, apikey, d_path, count=100):
 
 
 def scopus_abstract(doi_list, apikey, d_path, count=25):
+    """ Scrape the abstract API
+    Args:
+        doi_list: A list of DOIs from the main search
+        apikey: the same key used for the search queries
+        d_path: output path for data
+        count: default or custom specced number of returns from API
+    """
     with open(os.path.abspath(
               os.path.join(d_path, 'scopus', 'abstract_info', 'parsed',
                            'abstract_info.tsv')),
@@ -377,13 +382,13 @@ def scopus_abstract(doi_list, apikey, d_path, count=25):
 
 
 def scopus_serial_title(journal_title_list, apikey, d_path):
-    '''
-        not all of these generate 200s, some generate 404s, so do a check on
-        the response before looping over entries...
-    '''
-
+    """ Scrape the SerialTitle
+    Args:
+        journal_title_list: A list of unique journal titles
+        apikey: the same key used for the search queries
+        d_path: output path for data
+    """
     print('************ Now Scraping Scopus for Journal Meta ***********')
-
     with open(os.path.abspath(
               os.path.join(d_path,
                            'scopus', 'serialtitle', 'parsed',
@@ -391,35 +396,20 @@ def scopus_serial_title(journal_title_list, apikey, d_path):
               'w', encoding='utf-8') as tsvfile:
         serial_title = csv.writer(tsvfile, delimiter='\t',
                                   lineterminator='\n')
-        serial_title.writerow(['prismissn',
-                               'dctitle',
-                               'dcpublisher',
-                               'prismaggregationtype',
-                               'sourceid',
-                               'prismeissn',
-                               'openaccess',
-                               'openaccessarticle',
-                               'openarchivearticle',
-                               'openaccesstype',
-                               'openaccessstartdate',
-                               'oaallowsauthorpaid',
-                               'subjectarea',
-                               'subjectcodes',
-                               'subjectabvs',
-                               'subjectvalues',
-                               'sniplist',
-                               'snipfa',
-                               'snipyear',
-                               'snipscore',
-                               'sjrlist',
-                               'sjrfa',
-                               'sjryear',
-                               'sjrscore',
-                               'citescoreyearinfolist',
-                               'citescorecurrentmetric',
-                               'citescorecurrentmetricyear',
-                               'citescoretracker',
-                               'citescoretrackeryear'])
+        # @TODO this should be dynamicaly read from the api keys
+        serial_keys = ['prismissn', 'dctitle', 'dcpublisher',
+                       'prismaggregationtype', 'sourceid',
+                       'prismeissn', 'openaccess', 'openaccessarticle',
+                       'openarchivearticle', 'openaccesstype',
+                       'openaccessstartdate', 'oaallowsauthorpaid',
+                       'subjectarea', 'subjectcodes',
+                       'subjectabvs', 'subjectvalues', 'sniplist',
+                       'snipfa', 'snipyear', 'snipscore', 'sjrlist',
+                       'sjrfa', 'sjryear', 'sjrscore',
+                       'citescoreyearinfolist', 'citescorecurrentmetric',
+                       'citescorecurrentmetricyear',
+                       'citescoretracker', 'citescoretrackeryear']
+        serial_title.writerow(serial_keys)
         base_url = 'https://api.elsevier.com/content/serial/title/issn/'
         for issn in tqdm(journal_title_list):
             url = base_url + str(issn)
@@ -600,7 +590,7 @@ def scopus_serial_title(journal_title_list, apikey, d_path):
 
 
 def make_affil_df(search_df):
-    ''' make a long-format file for affiliations'''
+    """ Make a long-format file for affiliations"""
 
     print('*********** Now Making a Long Affiliations Dataset **********')
 
@@ -641,7 +631,7 @@ def make_affil_df(search_df):
 
 
 def make_keywords_df(abstract_df):
-    ''' this makes a long dataframe of keywords '''
+    """  Make a 'long' dataframe of keywords """
     print('**** Now making a long keywords dataset ****')
     abstract_df = abstract_df[abstract_df['DOI'].notnull()]
     abstract_df = abstract_df[abstract_df['Keywords'].notnull()]
@@ -683,6 +673,10 @@ def make_authorlist_df(abstract_df):
 
 
 def make_subjects_df(merged_df):
+    """ Make a 'long' subjects studied dataframe from Scopus
+    Args:
+        merged_df: A dataframe returned from all queries
+    """
     print('********* Now Making a Long Subjects Studied Dataset ********')
     doi = []
     subjectvals = []
@@ -710,6 +704,14 @@ def make_subjects_df(merged_df):
 
 
 def scopus_main(apikey, d_path, query_list):
+    """ Run the main Scopus queries, from search etc.
+    Args:
+        apikey: scopus apikey
+        d_path: output for merged file
+        query_list: list of queries from the query_list.py file
+    Return:
+        A merged outcome from all of the various APIs
+    """
     search_scopus_into_csv(query_list, apikey, d_path)
     scopus_df = pd.read_csv(os.path.join(d_path, 'scopus', 'search',
                                          'parsed', 'scopus_search_meta.tsv'),
@@ -726,7 +728,7 @@ def scopus_main(apikey, d_path, query_list):
 
 
 def merge_datasets(d_path):
-    """docstring."""
+    """ Merge the returns from various Scopus APIs"""
     scopus_df = pd.read_csv(os.path.join(d_path, 'scopus', 'search',
                                          'parsed', 'scopus_search_meta.tsv'),
                             index_col=None, sep='\t')
@@ -763,7 +765,6 @@ def merge_datasets(d_path):
     scopus_merged_df['Query'] = scopus_merged_df['Query'].str.replace('%20', " ")
     scopus_merged_df['Query'] = scopus_merged_df['Query'].str.replace('{', '"')
     scopus_merged_df['Query'] = scopus_merged_df['Query'].str.replace('}', '"')
-#    scopus_merged_df = scopus_merged_df.drop_duplicates(subset=['DOI'])
     scopus_merged_df.to_csv(os.path.join(d_path, 'scopus', 'merged',
                                          'scopus_merged_cleaned.csv'))
     return scopus_merged_df
