@@ -14,7 +14,16 @@ logging.getLogger('suds.client').setLevel(logging.CRITICAL)
 
 @limits(calls=5, period=300)
 def new_wos_query(new_item, client, d_path, sleeper=60):
-    """ Make a Web of Science query """
+    """ Make a Web of Science query
+
+    Args:
+        new_item: a cleaned query
+        client: the WoSClient
+        d_path: the output data path
+        sleeper: time to sleep after a failed attempt
+    Return:
+        A WoS dataframe from this specific query
+        """
     columns = ['Query', 'WOSID', 'Title', 'DOI', 'AuthorList',
                'Journal', 'Date', 'Keywords',  'Abstract']
     df = pd.DataFrame(columns=columns)
@@ -74,7 +83,7 @@ def new_wos_query(new_item, client, d_path, sleeper=60):
 
 
 def merge_dfs(d_path):
-    """Merge the files from the different search terms"""
+    """Merge the files from the different queries"""
     list_of_df = []
     for subdir, dirs, files in os.walk(os.path.join(d_path, 'wos')):
         for file in files:
@@ -86,11 +95,17 @@ def merge_dfs(d_path):
 
 
 def wos_main(querylist, d_path):
-    ''' main function for calling web of science returns '''
+    """ main function for calling web of science returns
+     Args:
+         querylist: a list of all queries
+         d_path: the output data path
+    Returns:
+        A merged dataframe of all queries
+    """
     # @TODO incorporate: article types, subject areas, countries.
     with WosClient() as client:
         for item in query_list:
-            # this reformats the string from query_list to make it amenable
+            # reformats string from query_list to make it amenable
             new_item = " AND ".join(['TS=' + x.replace('{', '"').
                                      replace('}', '"')
                                      for x in item.split(' AND ')])
