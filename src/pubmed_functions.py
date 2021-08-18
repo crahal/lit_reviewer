@@ -6,6 +6,14 @@ import time
 
 
 def search(query, email):
+    """ Set up the Entrez search handler
+
+    Args:
+        query: the query term coming from query_list.py
+        email: an email address for the header going to pubmed
+    Return:
+        Entrez search utility with query and header
+    """
     Entrez.email = email
     handle = Entrez.esearch(db='pubmed', sort='relevance', retmode='xml',
                             retmax=100000, term=query)
@@ -13,6 +21,13 @@ def search(query, email):
 
 
 def return_abstract(paper):
+    """ Clean the abstract of the paper
+
+    Args:
+        paper: the nested item of the paper itself
+    Return:
+        A cleaned abstract
+    """
     try:
         AbstractList = paper['MedlineCitation']['Article']['Abstract']
         Abstract = str(AbstractList['AbstractText'])
@@ -34,10 +49,12 @@ def return_abstract(paper):
 
 
 def return_pmid(paper):
+    """ Return the PMID from the paper nest"""
     return paper['MedlineCitation']['PMID']
 
 
 def return_keywords(paper):
+    """ Return the keywords from the paper nest"""
     try:
         keywords = ''
         for keyword in paper['MedlineCitation']['KeywordList'][0]:
@@ -49,6 +66,7 @@ def return_keywords(paper):
 
 
 def return_date(paper):
+    """ Return the date from the paper nest"""
     paper = paper['MedlineCitation']['Article']
     try:
         day = paper['ArticleDate'][0]['Day']
@@ -75,18 +93,22 @@ def return_date(paper):
 
 
 def return_title(paper):
+    """ Return the ArticleTitle from the paper nest"""
     return paper['MedlineCitation']['Article']['ArticleTitle']
 
 
 def return_journal(paper):
+    """ Return the Title from the paper nest"""
     return paper['MedlineCitation']['Article']['Journal']['Title']
 
 
 def return_type(paper):
+    """ Return the PublicationTypeList from the paper nest"""
     return str(paper['MedlineCitation']['Article']['PublicationTypeList'][0])
 
 
 def return_pag(paper):
+    """ Return the pagination from the paper nest"""
     try:
         return paper['MedlineCitation']['Article']['Pagination']['MedlinePgn']
     except KeyError:
@@ -94,6 +116,7 @@ def return_pag(paper):
 
 
 def return_doi(paper):
+    """ Return the doifrom the paper nest"""
     try:
         doi = None
         for element in paper['PubmedData']['ArticleIdList']:
@@ -105,6 +128,7 @@ def return_doi(paper):
 
 
 def return_authors(paper):
+    """ Return the author list from the paper nest"""
     authorlist = []
     try:
         for author in paper['MedlineCitation']['Article']['AuthorList']:
@@ -132,6 +156,7 @@ def call_entrez(id):
 
 
 def return_cite(pubmedid, email):
+    """ Return the citations from the paper nest"""
     Entrez.email = email
     results = call_entrez(pubmedid)
     try:
@@ -142,7 +167,14 @@ def return_cite(pubmedid, email):
 
 
 def pubmed_main(d_path, querylist, email):
-    """Generate a dataframe from pubmed API calls."""
+    """Generate a dataframe from pubmed API calls.
+    Args:
+        d_path: data path for output
+        querylist: the list of queries from the query_list.py file
+        email: email for the PubMed header
+    Return:
+        dataframe of built query returns
+    """
     df = pd.DataFrame(columns=['Title', 'DOI', 'AuthorList', 'Journal', 'Year',
                                'Date', 'Keywords', 'Type', 'Pagination',
                                'citedbycount', 'Abstract', 'Query'])
